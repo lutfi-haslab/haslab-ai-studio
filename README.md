@@ -10,8 +10,40 @@ A modern, full-featured AI development workspace built with React, TypeScript, a
 - **💬 Chat Interface** - Interactive conversations with AI models
 - **🌊 Stream Mode** - Real-time streaming responses 
 - **🎨 Generate Media** - AI-powered image and media generation
-- **🔨 Build Assistant** - Code generation and development help
+- **🔨 Code Editor** - Full-featured IDE with WebContainer, live preview, and hot reload
 - **📂 Project History** - Organized conversation and project tracking
+
+### 🆕 **Latest Updates - Code Editor**
+
+#### **Full-Featured IDE in Browser**
+- **📁 Virtual File System** - Tree view for browsing and managing project files
+- **✏️ Monaco Code Editor** - VS Code's editor with syntax highlighting
+- **👁️ Live Preview** - Instant preview with Vite dev server via WebContainer
+- **🔥 Hot Module Reload** - See changes instantly without page refresh
+- **💾 Smart Auto-Save** - Debounced auto-save (1s) that only saves real changes
+- **⌨️ Keyboard Shortcuts** - `Ctrl+S`/`Cmd+S` for manual save
+- **📦 Export to ZIP** - Download entire project with folder structure preserved
+
+#### **WebContainer Integration**
+- **🐳 Browser-Based Node.js** - Full Node.js environment running in browser
+- **📦 npm Install** - Install dependencies directly in browser
+- **⚡ Vite Dev Server** - Fast HMR with instant feedback
+- **🔒 Isolated Environment** - Sandboxed execution for security
+- **🖥️ Terminal Output** - Real-time logs from npm and Vite
+
+#### **Developer Experience**
+- **🎯 Double-Click Navigation** - Double-click file to open in code view
+- **📝 Create New Files** - Quick file creation with template
+- **🔄 Server Restart** - Manual restart option for clean state
+- **📊 Terminal Panel** - Collapsible terminal with build logs and errors
+- **🎨 Syntax Highlighting** - Support for JS, JSX, TS, TSX, CSS, HTML, JSON
+- **💡 Smart Features** - No auto-save on file open, only on actual changes
+
+#### **UI Enhancements**
+- **📐 Collapsible Sidebar** - Minimize to icons-only mode for more space
+- **🎯 Active Route Detection** - Sidebar highlights current page
+- **💬 Chat Title Tooltips** - Hover to see full conversation titles
+- **📏 Consistent Layout** - Optimized spacing in collapsed/expanded modes
 
 ### 📊 **Dashboard & Analytics**
 - **📁 Project Management** - Track development projects and collaborations
@@ -26,6 +58,16 @@ A modern, full-featured AI development workspace built with React, TypeScript, a
 - **📱 Responsive Design** - Works seamlessly on desktop and mobile
 
 ## 🖼️ Screenshots
+
+### Code Editor
+Full-featured code editor with WebContainer integration, live preview, and hot module reloading.
+
+![Code Editor](screenshot/code-editor.png)
+
+### Live Preview
+Real-time preview with WebContainer running Vite dev server directly in the browser.
+
+![Code Preview](screenshot/code-preview.png)
 
 ### Chat Interface
 The main chat interface with AI conversation capabilities, message history, and real-time responses.
@@ -49,6 +91,9 @@ Detailed usage monitoring with cost breakdown, service metrics, and performance 
 - **Styling**: Tailwind CSS 4.0 with custom design system
 - **UI Components**: Radix UI primitives with custom styling
 - **State Management**: TanStack React Query + Store
+- **Code Editor**: Monaco Editor (VS Code editor)
+- **WebContainer**: @webcontainer/api for in-browser Node.js
+- **File Compression**: JSZip for project export
 - **Icons**: Lucide React
 - **Build Tool**: Vite 7.0
 - **Development**: TypeScript 5.7 with strict configuration
@@ -133,12 +178,18 @@ src/
 - **Voice input** capabilities
 - **Response actions** (copy, regenerate, rate)
 
-### Code Generation (Build)
-- **Multi-language support** (JavaScript, Python, Java, C#, Go, Rust, PHP)
-- **Syntax highlighting** for generated code
-- **Code execution** and testing capabilities
-- **Project context** awareness
-- **Export and download** functionality
+### Code Editor (Build)
+- **WebContainer Integration** - Full Node.js environment in browser
+- **Monaco Editor** - Professional code editor with IntelliSense
+- **Live Preview** - Real-time preview with Vite HMR
+- **File System** - Complete virtual file system with tree navigation
+- **Smart Auto-Save** - Intelligent auto-save with 1-second debounce
+- **Terminal Output** - Real-time logs from build processes
+- **Export Project** - Download as ZIP with folder structure
+- **Multi-Language Support** - JavaScript, TypeScript, JSX, TSX, CSS, HTML, JSON
+- **Hot Reload** - Instant updates on save without full page refresh
+- **Create Files** - Quick file creation from UI
+- **Keyboard Shortcuts** - `Ctrl+S`/`Cmd+S` for manual save
 
 ### Media Generation
 - **Text-to-image** generation with multiple styles
@@ -186,14 +237,49 @@ The sidebar uses a hierarchical accordion structure:
 - **Advanced features** (Thinking mode, Structured output)
 - **Tool integrations** (Code execution, Function calling, Grounding)
 
+## 📋 Changelog
+
+### v2.0.0 - Code Editor Release (Latest)
+
+#### 🎉 Major Features
+- **Full IDE Experience** - Complete code editor with file system, preview, and terminal
+- **WebContainer Integration** - Run Node.js and npm directly in browser
+- **Live Preview with HMR** - Instant feedback with Vite hot module reload
+- **Export to ZIP** - Download projects with full folder structure
+
+#### ✨ Improvements
+- **Smart Auto-Save** - Only saves actual changes, not on file open
+- **Collapsible Sidebar** - Minimize to icons for more workspace
+- **Active Route Highlighting** - Dynamic sidebar state based on current page
+- **Terminal Panel** - Collapsible terminal with real-time build logs
+- **Double-Click Navigation** - Quick file opening in code view
+- **Chat Title Truncation** - Clean 13-char limit with tooltips
+
+#### 🐛 Bug Fixes
+- Fixed sidebar content overflow in collapsed mode
+- Fixed terminal spinner characters appearing in logs
+- Fixed multiple WebContainer instances causing port conflicts
+- Prevented duplicate dev server initialization
+- Fixed background cutoff in collapsed sidebar active state
+
+### v1.0.0 - Initial Release
+- Chat interface with AI conversations
+- Stream mode with real-time responses
+- Media generation capabilities
+- Project management dashboard
+- Usage analytics and tracking
+
 ## 🔮 Future Enhancements
 
+- **🤖 AI Code Generation** - Connect code editor with AI for intelligent code suggestions
 - **🔌 API Integration** - Connect with real AI service providers
 - **👥 Multi-user Support** - Team workspaces and collaboration
-- **🔄 Version Control** - Git integration for projects
+- **🔄 Version Control** - Git integration within the editor
 - **🧪 Testing Suite** - Automated testing for generated code
 - **📱 Mobile App** - Native mobile applications
 - **🔒 Enterprise Features** - SSO, permissions, audit logs
+- **🎨 Theme Customization** - Multiple editor themes and color schemes
+- **🌐 Multi-Language Projects** - Support for more frameworks (Vue, Angular, Svelte)
 
 ## 🤝 Contributing
 
