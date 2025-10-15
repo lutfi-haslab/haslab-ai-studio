@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { Link, useLocation } from '@tanstack/react-router'
+import { useState, useEffect } from 'react'
+import { Link, useLocation, useNavigate } from '@tanstack/react-router'
+import { useStore } from '@tanstack/react-store'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
@@ -7,13 +8,13 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { conversationStore } from '@/lib/conversation-store'
 import {
   MessageSquare,
   Plus,
   Menu,
   Settings,
   History,
-  Star,
   Home,
   Play,
   Image as ImageIcon,
@@ -28,28 +29,55 @@ import {
   PanelLeftOpen
 } from 'lucide-react'
 
-interface ChatSession {
-  id: string
-  title: string
-  model: string
-  lastMessage: string
-  timestamp: Date
-  isStarred?: boolean
-}
-
-const RECENT_CHATS: ChatSession[] = [
-  { id: '1', title: 'React Component test testffff', model: 'Gemini Pro', lastMessage: 'Let me help you design...', timestamp: new Date(), isStarred: true },
-  { id: '2', title: 'Database Optimization', model: 'GPT-4', lastMessage: 'For PostgreSQL performance...', timestamp: new Date(Date.now() - 3600000) },
-  { id: '3', title: 'Machine Learning Model', model: 'Claude 3', lastMessage: 'Container orchestration with...', timestamp: new Date(Date.now() - 7200000) },
-]
-
 export function Sidebar() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const conversationState = useStore(conversationStore)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [studioExpanded, setStudioExpanded] = useState(true)
   const [dashboardExpanded, setDashboardExpanded] = useState(false)
   const [historyExpanded, setHistoryExpanded] = useState(true)
+
+  useEffect(() => {
+    conversationStore.loadConversations()
+  }, [])
+
+  const handleNewChat = () => {
+    conversationStore.setActiveConversation(null)
+    const currentPath = location.pathname
+    if (currentPath === '/chat' || currentPath === '/stream') {
+      window.location.reload()
+    } else {
+      navigate({ to: '/chat' })
+    }
+    setIsMobileOpen(false)
+  }
+
+  const handleSelectConversation = (conversationId: string) => {
+    conversationStore.setActiveConversation(conversationId)
+    const currentPath = location.pathname
+    if (currentPath === '/chat' || currentPath === '/stream') {
+      window.location.reload()
+    } else {
+      navigate({ to: '/chat' })
+    }
+    setIsMobileOpen(false)
+  }
+
+  const formatRelativeTime = (date: Date): string => {
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays < 7) return `${diffDays}d ago`
+    return date.toLocaleDateString()
+  }
 
   const truncateTitle = (title: string, maxLength: number = 13): string => {
     if (title.length <= maxLength) return title
@@ -94,7 +122,7 @@ export function Sidebar() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button className="w-full justify-center h-10 bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Button onClick={handleNewChat} className="w-full justify-center h-10 bg-primary hover:bg-primary/90 text-primary-foreground">
                   <Plus className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -104,7 +132,7 @@ export function Sidebar() {
             </Tooltip>
           </TooltipProvider>
         ) : (
-          <Button className="w-full justify-start gap-2 h-10 bg-primary hover:bg-primary/90 text-primary-foreground">
+          <Button onClick={handleNewChat} className="w-full justify-start gap-2 h-10 bg-primary hover:bg-primary/90 text-primary-foreground">
             <Plus className="h-4 w-4" />
             New chat
           </Button>
@@ -188,36 +216,45 @@ export function Sidebar() {
                     </Button>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="space-y-1 mt-1 ml-6">
-                    {RECENT_CHATS.map((chat) => (
-                      <Tooltip key={chat.id}>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start text-left h-auto p-2 hover:bg-accent group"
-                            aria-label={`Open conversation: ${chat.title}`}
-                          >
-                            <div className="flex items-start gap-2 w-full min-w-0">
-                              <MessageSquare className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" aria-hidden="true" />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1 mb-1">
-                                  <span className="text-sm font-medium text-foreground">{truncateTitle(chat.title)}</span>
-                                  {chat.isStarred && <Star className="h-3 w-3 text-yellow-500 fill-current flex-shrink-0" aria-label="Starred conversation" />}
-                                </div>
-                                <div className="text-xs text-muted-foreground truncate">
-                                  {chat.timestamp.toLocaleDateString()}
+                    {conversationState.conversations.length === 0 ? (
+                      <div className="text-center py-4 text-muted-foreground text-xs">
+                        No conversations yet
+                      </div>
+                    ) : (
+                      conversationState.conversations.map((conv) => (
+                        <Tooltip key={conv.id}>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className={`w-full justify-start text-left h-auto p-2 hover:bg-accent group ${
+                                conversationState.activeConversationId === conv.id ? 'bg-accent' : ''
+                              }`}
+                              onClick={() => handleSelectConversation(conv.id)}
+                              aria-label={`Open conversation: ${conv.title}`}
+                            >
+                              <div className="flex items-start gap-2 w-full min-w-0">
+                                <MessageSquare className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" aria-hidden="true" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-1 mb-1">
+                                    <span className="text-sm font-medium text-foreground">{truncateTitle(conv.title)}</span>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground truncate">
+                                    {formatRelativeTime(conv.updatedAt)}
+                                  </div>
                                 </div>
                               </div>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            <div className="max-w-xs">
+                              <p className="font-medium">{conv.title}</p>
+                              <p className="text-xs text-muted-foreground">{conv.modelName}</p>
+                              <p className="text-xs text-muted-foreground">{conv.messages.length} messages</p>
                             </div>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="right">
-                          <div className="max-w-xs">
-                            <p className="font-medium">{chat.title}</p>
-                            <p className="text-xs text-muted-foreground">{chat.model}</p>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
+                          </TooltipContent>
+                        </Tooltip>
+                      ))
+                    )}
                   </CollapsibleContent>
                   </Collapsible>
                 </CollapsibleContent>

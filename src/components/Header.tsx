@@ -67,7 +67,7 @@ export function Header() {
 
         <Badge variant="secondary" className="hidden md:flex items-center gap-1 text-xs bg-primary/10 text-primary border-primary/20">
           <div className="h-2 w-2 rounded-full bg-primary" />
-          Gemini Pro
+          Active
         </Badge>
 
         <Avatar className="h-9 w-9 border border-border">

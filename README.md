@@ -7,11 +7,11 @@ A modern, full-featured AI development workspace built with React, TypeScript, a
 ## ✨ Features
 
 ### 🏠 **Studio Workspace**
-- **💬 Chat Interface** - Interactive conversations with AI models
-- **🌊 Stream Mode** - Real-time streaming responses 
-- **🎨 Generate Media** - AI-powered image and media generation
+- **💬 Chat Interface** - Interactive conversations with AI models with persistent storage
+- **🌊 Stream Mode** - Real-time streaming responses with LangChain integration
+- **🎨 Generate Media** - Gemini 2.5 Flash image generation and vision analysis
 - **🔨 Code Editor** - Full-featured IDE with WebContainer, live preview, and hot reload
-- **📂 Project History** - Organized conversation and project tracking
+- **📂 Conversation History** - Persistent chat history with localStorage
 
 ### 🆕 **Latest Updates - Code Editor**
 
@@ -84,13 +84,20 @@ Detailed usage monitoring with cost breakdown, service metrics, and performance 
 
 ![Usage Analytics](screenshot/usage.png)
 
+### Image Generation
+AI-powered image generation with Gemini 2.5 Flash, including style helpers, quality presets, and real-time cost tracking.
+
+![Image Generation](screenshot/imagen-nanobanana.png)
+
 ## 🛠️ Tech Stack
 
 - **Frontend Framework**: React 19.0 with TypeScript
 - **Routing**: TanStack React Router
-- **Styling**: Tailwind CSS 4.0 with custom design system
+- **Styling**: Tailwind CSS 4.0 with @tailwindcss/typography plugin
 - **UI Components**: Radix UI primitives with custom styling
 - **State Management**: TanStack React Query + Store
+- **AI Integration**: LangChain (@langchain/deepseek, @langchain/openai, @langchain/core)
+- **Markdown Rendering**: react-markdown with remark-gfm and rehype-highlight
 - **Code Editor**: Monaco Editor (VS Code editor)
 - **WebContainer**: @webcontainer/api for in-browser Node.js
 - **File Compression**: JSZip for project export
@@ -172,11 +179,14 @@ src/
 ## 🔧 Key Components
 
 ### Chat Interface
-- **Real-time messaging** with AI models
-- **Message history** with persistent storage
-- **File attachments** and media support
-- **Voice input** capabilities
-- **Response actions** (copy, regenerate, rate)
+- **Real-time messaging** with AI models (DeepSeek, OpenRouter, iFlow)
+- **LangChain integration** - Using @langchain/deepseek and @langchain/openai
+- **Message history** with persistent localStorage
+- **Conversation management** - Create, load, delete conversations from sidebar
+- **Markdown rendering** - Rich text display with syntax highlighting (react-markdown + rehype-highlight)
+- **New chat** functionality with conversation switching
+- **Response actions** (copy to clipboard)
+- **Streaming support** - Real-time token-by-token responses
 
 ### Code Editor (Build)
 - **WebContainer Integration** - Full Node.js environment in browser
@@ -191,12 +201,17 @@ src/
 - **Create Files** - Quick file creation from UI
 - **Keyboard Shortcuts** - `Ctrl+S`/`Cmd+S` for manual save
 
-### Media Generation
-- **Text-to-image** generation with multiple styles
-- **Style controls** (Realistic, Artistic, Cartoon, Abstract, Photography)
-- **Size options** (Square, Landscape, Portrait formats)
-- **Image gallery** with management tools
-- **Download and sharing** capabilities
+### Media Generation (Gemini 2.5 Flash)
+- **Text-to-image** generation using Google Gemini 2.5 Flash Image Preview
+- **Image Analysis** - Upload images and get AI-powered analysis with vision model
+- **Style controls** - 11 styles: Realistic, Anime, Cartoon, 3D Render, Oil Painting, Watercolor, Sketch, Pixel Art, Cyberpunk, Fantasy
+- **Quality presets** - Standard, High Detail, Ultra HD, Cinematic
+- **Lighting options** - Golden Hour, Soft Studio, Dramatic, Neon, Natural
+- **Enhanced prompt preview** - See how your prompt is enhanced with modifiers
+- **Usage metrics** - Real-time token usage and cost tracking
+- **Pricing transparency** - $0.30/M input tokens, $2.50/M output tokens, $1.238/K input images, $0.03/K output images
+- **Image gallery** with download and copy capabilities
+- **Base64 image support** - Direct display of generated images
 
 ### Project Management
 - **Project cards** with progress tracking
@@ -239,7 +254,33 @@ The sidebar uses a hierarchical accordion structure:
 
 ## 📋 Changelog
 
-### v2.0.0 - Code Editor Release (Latest)
+### v2.1.0 - AI Image Generation & LangChain Migration (Latest)
+
+#### 🎉 Major Features
+- **Gemini Image Generation** - Text-to-image using Google Gemini 2.5 Flash Image Preview
+- **Vision Analysis** - Upload and analyze images with Gemini vision model
+- **Style Helpers** - 11 art styles including Realistic, Anime, Cartoon, Pixel Art, etc.
+- **Quality & Lighting Presets** - Professional controls for image enhancement
+- **Usage Metrics** - Real-time cost tracking with token and image usage
+- **LangChain Migration** - Migrated from AI SDK to LangChain for better control
+- **Markdown Chat** - Full markdown rendering with syntax highlighting
+- **Persistent Storage** - Conversation history saved in localStorage
+
+#### ✨ Improvements
+- **Enhanced Prompt Preview** - See how modifiers enhance your prompt
+- **Cost Transparency** - Header shows total tokens, images, and cost
+- **Per-Image Metrics** - Each generation shows individual token usage and cost
+- **Download Support** - Works with both base64 and URL images
+- **Style Tags** - Generated images display applied style, quality, and lighting
+- **Conversation Sidebar** - Browse and switch between saved conversations
+- **New Chat Button** - Quickly start fresh conversations
+
+#### 🐛 Bug Fixes
+- Fixed image URL extraction from Gemini response format
+- Fixed base64 image download functionality
+- Removed model selector (now Gemini-only for consistency)
+
+### v2.0.0 - Code Editor Release
 
 #### 🎉 Major Features
 - **Full IDE Experience** - Complete code editor with file system, preview, and terminal
@@ -272,7 +313,9 @@ The sidebar uses a hierarchical accordion structure:
 ## 🔮 Future Enhancements
 
 - **🤖 AI Code Generation** - Connect code editor with AI for intelligent code suggestions
-- **🔌 API Integration** - Connect with real AI service providers
+- **🎬 Video Generation** - Extend media generation to support video
+- **🎵 Audio Generation** - Text-to-speech and audio synthesis
+- **🖼️ Image Editing** - In-place image modification and enhancement
 - **👥 Multi-user Support** - Team workspaces and collaboration
 - **🔄 Version Control** - Git integration within the editor
 - **🧪 Testing Suite** - Automated testing for generated code
@@ -280,6 +323,8 @@ The sidebar uses a hierarchical accordion structure:
 - **🔒 Enterprise Features** - SSO, permissions, audit logs
 - **🎨 Theme Customization** - Multiple editor themes and color schemes
 - **🌐 Multi-Language Projects** - Support for more frameworks (Vue, Angular, Svelte)
+- **💾 Cloud Storage** - Sync conversations and images across devices
+- **🔍 Advanced Search** - Search through conversation history
 
 ## 🤝 Contributing
 
