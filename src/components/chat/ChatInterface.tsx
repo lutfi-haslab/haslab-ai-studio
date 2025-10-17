@@ -22,6 +22,7 @@ import { getAIProvider } from '@/lib/ai-service'
 import { AI_MODELS, BASEURL } from '@/lib/ai-models'
 import type { StoredMessage } from '@/lib/storage'
 import { MarkdownMessage } from './MarkdownMessage'
+import { Badge } from '@/components/ui/badge'
 import ENV from '@/lib/env'
 
 interface Message {
@@ -320,12 +321,7 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
   }
 
   const handleNewChat = () => {
-    setMessages([{
-      id: '1',
-      role: 'assistant',
-      content: `Hello! I'm ${modelInfo?.name || 'your AI assistant'}. How can I help you today?`,
-      timestamp: new Date()
-    }])
+    setMessages([])
     setCurrentConversationId(null)
     conversationStore.setActiveConversation(null)
   }
@@ -405,9 +401,18 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
                   </Card>
 
                   <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                    {message.role === 'assistant' && modelInfo?.name}
-                    <span>{message.timestamp.toLocaleTimeString()}</span>
-                    {message.isStreaming && <span className="text-blue-500">• Streaming</span>}
+                    {message.role === 'assistant' && (
+                      <>
+                        <Badge variant="secondary" className="text-xs">
+                          {modelInfo?.name || 'Unknown'}
+                        </Badge>
+                        <span>{message.timestamp.toLocaleTimeString()}</span>
+                        {message.isStreaming && <span className="text-blue-500 animate-pulse">• Streaming</span>}
+                      </>
+                    )}
+                    {message.role === 'user' && (
+                      <span>{message.timestamp.toLocaleTimeString()}</span>
+                    )}
                   </div>
                 </div>
 

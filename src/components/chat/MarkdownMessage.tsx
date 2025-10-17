@@ -2,6 +2,59 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 import 'highlight.js/styles/github-dark.css'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Copy, ChevronDown, ChevronUp } from 'lucide-react'
+
+interface CodeBlockProps {
+  content: string
+  language?: string
+}
+
+function CodeBlock({ content, language }: CodeBlockProps) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const lines = content.split('\n')
+  const shouldCollapse = lines.length > 20
+  const displayLines = shouldCollapse && !isExpanded ? lines.slice(0, 20) : lines
+  const displayContent = displayLines.join('\n')
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(content)
+  }
+
+  return (
+    <div className="relative group">
+      <pre className={`${language} rounded-lg p-4 overflow-x-auto bg-muted`}>
+        <code className={language}>
+          {displayContent}
+          {shouldCollapse && !isExpanded && <span className="text-muted-foreground">...</span>}
+        </code>
+      </pre>
+      <div className="absolute top-2 right-2 flex gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={copyToClipboard}
+          title="Copy code"
+        >
+          <Copy className="h-3 w-3" />
+        </Button>
+        {shouldCollapse && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={() => setIsExpanded(!isExpanded)}
+            title={isExpanded ? "Collapse" : "Expand"}
+          >
+            {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}
 
 interface MarkdownMessageProps {
   content: string
@@ -23,13 +76,7 @@ export function MarkdownMessage({ content, isUser = false }: MarkdownMessageProp
           code({ className, children, ...props }: any) {
             const isInline = !className || !className.includes('language-')
             return !isInline ? (
-              <div className="relative group">
-                <pre className={`${className} rounded-lg p-4 overflow-x-auto bg-muted`}>
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                </pre>
-              </div>
+              <CodeBlock content={String(children)} language={className} />
             ) : (
               <code className={`px-1.5 py-0.5 rounded bg-muted text-sm font-mono`} {...props}>
                 {children}
