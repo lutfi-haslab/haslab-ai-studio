@@ -320,6 +320,7 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
   }
 
   const handleNewChat = () => {
+    // Clear all previous state
     setMessages([{
       id: '1',
       role: 'assistant',
@@ -327,6 +328,14 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
       timestamp: new Date()
     }])
     setCurrentConversationId(null)
+    setInput('')
+    setIsLoading(false)
+    setIsListening(false)
+    // Cancel any ongoing requests
+    if (abortController) {
+      abortController.abort()
+      setAbortController(null)
+    }
     conversationStore.setActiveConversation(null)
   }
 

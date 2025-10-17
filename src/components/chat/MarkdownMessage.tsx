@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
+import { Button } from '@/components/ui/button'
+import { ChevronDown, ChevronUp, Copy, Check } from 'lucide-react'
 import 'highlight.js/styles/github-dark.css'
 
 interface MarkdownMessageProps {
@@ -8,7 +11,39 @@ interface MarkdownMessageProps {
   isUser?: boolean
 }
 
+const CODE_TRUNCATE_LINES = 20
+
 export function MarkdownMessage({ content, isUser = false }: MarkdownMessageProps) {
+  const [expandedBlocks, setExpandedBlocks] = useState<Set<number>>(new Set())
+  const [copiedBlocks, setCopiedBlocks] = useState<Set<number>>(new Set())
+
+  const toggleBlock = (index: number) => {
+    setExpandedBlocks(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(index)) {
+        newSet.delete(index)
+      } else {
+        newSet.add(index)
+      }
+      return newSet
+    })
+  }
+
+  const copyCode = async (code: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopiedBlocks(prev => new Set(prev).add(index))
+      setTimeout(() => {
+        setCopiedBlocks(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(index)
+          return newSet
+        })
+      }, 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
   return (
     <div className={`prose prose-sm max-w-none ${
       isUser 
@@ -22,18 +57,79 @@ export function MarkdownMessage({ content, isUser = false }: MarkdownMessageProp
           // Custom rendering for code blocks
           code({ className, children, ...props }: any) {
             const isInline = !className || !className.includes('language-')
-            return !isInline ? (
-              <div className="relative group">
-                <pre className={`${className} rounded-lg p-4 overflow-x-auto bg-muted`}>
+            
+            if (isInline) {
+              return (
+                <code className={`px-1.5 py-0.5 rounded bg-muted text-sm font-mono`} {...props}>
+                  {children}
+                </code>
+              )
+            }
+
+            // For code blocks, handle truncation
+            const codeString = String(children).replace(/\n$/, '')
+            const lines = codeString.split('\n')
+            const blockIndex = Math.random() // Use a simple random index for demo
+            const shouldTruncate = lines.length > CODE_TRUNCATE_LINES
+            const isExpanded = expandedBlocks.has(blockIndex)
+            const isCopied = copiedBlocks.has(blockIndex)
+            const displayedCode = shouldTruncate && !isExpanded 
+              ? lines.slice(0, CODE_TRUNCATE_LINES).join('\n') 
+              : codeString
+
+            const language = className?.replace('language-', '') || 'text'
+
+            return (
+              <div className="relative group my-3">
+                <div className="flex items-center justify-between bg-muted/50 px-3 py-1.5 rounded-t-lg border-b border-border">
+                  <span className="text-xs font-mono text-muted-foreground">{language}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => copyCode(codeString, blockIndex)}
+                  >
+                    {isCopied ? (
+                      <>
+                        <Check className="h-3 w-3 mr-1" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3 w-3 mr-1" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <pre className={`${className} rounded-t-none rounded-b-lg p-4 overflow-x-auto bg-muted border-t-0`}>
                   <code className={className} {...props}>
-                    {children}
+                    {displayedCode}
                   </code>
                 </pre>
+                {shouldTruncate && (
+                  <div className="flex justify-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-1 h-7 text-xs"
+                      onClick={() => toggleBlock(blockIndex)}
+                    >
+                      {isExpanded ? (
+                        <>
+                          <ChevronUp className="h-3 w-3 mr-1" />
+                          Show less
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="h-3 w-3 mr-1" />
+                          Show {lines.length - CODE_TRUNCATE_LINES} more lines
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
-            ) : (
-              <code className={`px-1.5 py-0.5 rounded bg-muted text-sm font-mono`} {...props}>
-                {children}
-              </code>
             )
           },
           // Custom rendering for paragraphs
