@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsageRouteImport } from './routes/usage'
 import { Route as StreamRouteImport } from './routes/stream'
 import { Route as ProjectRouteImport } from './routes/project'
+import { Route as MediaEnhancedRouteImport } from './routes/media-enhanced'
 import { Route as MediaRouteImport } from './routes/media'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as BuildRouteImport } from './routes/build'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MediaBackupRouteImport } from './routes/media.backup'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoStoreRouteImport } from './routes/demo/store'
 
@@ -33,6 +35,11 @@ const StreamRoute = StreamRouteImport.update({
 const ProjectRoute = ProjectRouteImport.update({
   id: '/project',
   path: '/project',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MediaEnhancedRoute = MediaEnhancedRouteImport.update({
+  id: '/media-enhanced',
+  path: '/media-enhanced',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MediaRoute = MediaRouteImport.update({
@@ -60,6 +67,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MediaBackupRoute = MediaBackupRouteImport.update({
+  id: '/backup',
+  path: '/backup',
+  getParentRoute: () => MediaRoute,
+} as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   id: '/demo/tanstack-query',
   path: '/demo/tanstack-query',
@@ -76,24 +88,28 @@ export interface FileRoutesByFullPath {
   '/build': typeof BuildRoute
   '/chat': typeof ChatRoute
   '/login': typeof LoginRoute
-  '/media': typeof MediaRoute
+  '/media': typeof MediaRouteWithChildren
+  '/media-enhanced': typeof MediaEnhancedRoute
   '/project': typeof ProjectRoute
   '/stream': typeof StreamRoute
   '/usage': typeof UsageRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/media/backup': typeof MediaBackupRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/build': typeof BuildRoute
   '/chat': typeof ChatRoute
   '/login': typeof LoginRoute
-  '/media': typeof MediaRoute
+  '/media': typeof MediaRouteWithChildren
+  '/media-enhanced': typeof MediaEnhancedRoute
   '/project': typeof ProjectRoute
   '/stream': typeof StreamRoute
   '/usage': typeof UsageRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/media/backup': typeof MediaBackupRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -101,12 +117,14 @@ export interface FileRoutesById {
   '/build': typeof BuildRoute
   '/chat': typeof ChatRoute
   '/login': typeof LoginRoute
-  '/media': typeof MediaRoute
+  '/media': typeof MediaRouteWithChildren
+  '/media-enhanced': typeof MediaEnhancedRoute
   '/project': typeof ProjectRoute
   '/stream': typeof StreamRoute
   '/usage': typeof UsageRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/media/backup': typeof MediaBackupRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -116,11 +134,13 @@ export interface FileRouteTypes {
     | '/chat'
     | '/login'
     | '/media'
+    | '/media-enhanced'
     | '/project'
     | '/stream'
     | '/usage'
     | '/demo/store'
     | '/demo/tanstack-query'
+    | '/media/backup'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -128,11 +148,13 @@ export interface FileRouteTypes {
     | '/chat'
     | '/login'
     | '/media'
+    | '/media-enhanced'
     | '/project'
     | '/stream'
     | '/usage'
     | '/demo/store'
     | '/demo/tanstack-query'
+    | '/media/backup'
   id:
     | '__root__'
     | '/'
@@ -140,11 +162,13 @@ export interface FileRouteTypes {
     | '/chat'
     | '/login'
     | '/media'
+    | '/media-enhanced'
     | '/project'
     | '/stream'
     | '/usage'
     | '/demo/store'
     | '/demo/tanstack-query'
+    | '/media/backup'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -152,7 +176,8 @@ export interface RootRouteChildren {
   BuildRoute: typeof BuildRoute
   ChatRoute: typeof ChatRoute
   LoginRoute: typeof LoginRoute
-  MediaRoute: typeof MediaRoute
+  MediaRoute: typeof MediaRouteWithChildren
+  MediaEnhancedRoute: typeof MediaEnhancedRoute
   ProjectRoute: typeof ProjectRoute
   StreamRoute: typeof StreamRoute
   UsageRoute: typeof UsageRoute
@@ -181,6 +206,13 @@ declare module '@tanstack/react-router' {
       path: '/project'
       fullPath: '/project'
       preLoaderRoute: typeof ProjectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/media-enhanced': {
+      id: '/media-enhanced'
+      path: '/media-enhanced'
+      fullPath: '/media-enhanced'
+      preLoaderRoute: typeof MediaEnhancedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/media': {
@@ -218,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/media/backup': {
+      id: '/media/backup'
+      path: '/backup'
+      fullPath: '/media/backup'
+      preLoaderRoute: typeof MediaBackupRouteImport
+      parentRoute: typeof MediaRoute
+    }
     '/demo/tanstack-query': {
       id: '/demo/tanstack-query'
       path: '/demo/tanstack-query'
@@ -235,12 +274,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface MediaRouteChildren {
+  MediaBackupRoute: typeof MediaBackupRoute
+}
+
+const MediaRouteChildren: MediaRouteChildren = {
+  MediaBackupRoute: MediaBackupRoute,
+}
+
+const MediaRouteWithChildren = MediaRoute._addFileChildren(MediaRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BuildRoute: BuildRoute,
   ChatRoute: ChatRoute,
   LoginRoute: LoginRoute,
-  MediaRoute: MediaRoute,
+  MediaRoute: MediaRouteWithChildren,
+  MediaEnhancedRoute: MediaEnhancedRoute,
   ProjectRoute: ProjectRoute,
   StreamRoute: StreamRoute,
   UsageRoute: UsageRoute,

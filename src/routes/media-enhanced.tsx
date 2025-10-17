@@ -30,7 +30,7 @@ import {
   Zap
 } from 'lucide-react'
 
-export const Route = createFileRoute('/media')({
+export const Route = createFileRoute('/media-enhanced')({
   component: GenerateMediaEnhanced,
 })
 

@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { useStore } from '@tanstack/react-store'
+import { motion, AnimatePresence } from 'framer-motion'
 import { HumanMessage, SystemMessage } from '@langchain/core/messages'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import {
   Send,
   Paperclip,
@@ -14,14 +16,16 @@ import {
   Bot,
   Copy,
   StopCircle,
-  Plus
+  Plus,
+  X,
+  Image as ImageIcon
 } from 'lucide-react'
 import { modelSettingsStore } from '@/lib/model-settings-store'
 import { conversationStore } from '@/lib/conversation-store'
 import { getAIProvider } from '@/lib/ai-service'
 import { AI_MODELS, BASEURL } from '@/lib/ai-models'
 import type { StoredMessage } from '@/lib/storage'
-import { MarkdownMessage } from './MarkdownMessage'
+import { ChatMessage } from './ChatMessage'
 import ENV from '@/lib/env'
 
 interface Message {
@@ -30,6 +34,7 @@ interface Message {
   content: string
   timestamp: Date
   isStreaming?: boolean
+  image?: string // Base64 encoded image
 }
 
 interface ChatInterfaceProps {
@@ -44,9 +49,22 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [abortController, setAbortController] = useState<AbortController | null>(null)
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
+
+  // Models that support vision/image input
+  const visionModels = [
+    'google/gemini-2.0-flash-exp:free',
+    'google/gemini-pro-vision',
+    'openai/gpt-4-vision-preview',
+    'anthropic/claude-3-opus',
+    'anthropic/claude-3-sonnet',
+    'anthropic/claude-3-haiku'
+  ]
+  const supportsVision = visionModels.some(model => settings.model.includes(model.split('/')[1]) || settings.model === model)
 
   useEffect(() => {
     const activeConversation = conversationStore.getActiveConversation()
@@ -84,14 +102,54 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
     scrollToBottom()
   }, [messages])
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target?.files?.[0]
+    if (!file) return
+
+    // Check if model supports vision
+    if (!supportsVision) {
+      alert(`⚠️ Image upload not supported\n\nThe current model "${modelInfo?.name || settings.model}" does not support image input.\n\nPlease switch to a vision-capable model like:\n- Google Gemini 2.0 Flash\n- GPT-4 Vision\n- Claude 3 (Opus/Sonnet/Haiku)`)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+      return
+    }
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image file is too large. Maximum size is 5MB.')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setUploadedImage(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const removeImage = () => {
+    setUploadedImage(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return
+
+    // Check if trying to send image with non-vision model
+    if (uploadedImage && !supportsVision) {
+      alert(`⚠️ Image upload not supported\n\nThe current model "${modelInfo?.name || settings.model}" does not support image input.\n\nPlease remove the image or switch to a vision-capable model.`)
+      return
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
       content: input,
-      timestamp: new Date()
+      timestamp: new Date(),
+      image: uploadedImage || undefined
     }
 
     if (!currentConversationId) {
@@ -104,8 +162,13 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
     }
 
     const userInput = input
+    const userImageData = uploadedImage
     setMessages(prev => [...prev, userMessage])
     setInput('')
+    setUploadedImage(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
     setIsLoading(true)
 
     const controller = new AbortController()
@@ -125,10 +188,19 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
 
         console.log('[iFlow] Using fetch API - endpoint:', `${BASEURL.iflow}/v1/chat/completions`, 'model:', settings.model)
 
+        // Build user message content
+        let userContent: any = userInput
+        if (userImageData && supportsVision) {
+          userContent = [
+            { type: 'text', text: userInput },
+            { type: 'image_url', image_url: { url: userImageData } }
+          ]
+        }
+
         const allMessages = [
           ...(settings.systemInstructions ? [{ role: 'system' as const, content: settings.systemInstructions }] : []),
           ...conversationHistory,
-          { role: 'user' as const, content: userInput }
+          { role: 'user' as const, content: userContent }
         ]
 
         const requestBody = {
@@ -213,16 +285,115 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
           setMessages(prev => [...prev, assistantMessage])
         }
       } else {
-        // Use LangChain for OpenRouter and DeepSeek
-        const llm = getAIProvider(settings)
+        // Use direct API for vision models, LangChain for text-only
+        if (userImageData && supportsVision && settings.provider === 'openrouter') {
+          // Direct API call for vision models
+          if (!ENV.OPENROUTER_API_KEY) {
+            throw new Error('OpenRouter API key is not set')
+          }
 
-        const langchainMessages = [
-          ...(settings.systemInstructions ? [new SystemMessage(settings.systemInstructions)] : []),
-          ...conversationHistory.map(msg =>
-            msg.role === 'user' ? new HumanMessage(msg.content) : new SystemMessage(msg.content)
-          ),
-          new HumanMessage(userInput)
-        ]
+          const userContent = [
+            { type: 'text', text: userInput },
+            { type: 'image_url', image_url: { url: userImageData } }
+          ]
+
+          const allMessages = [
+            ...(settings.systemInstructions ? [{ role: 'system', content: settings.systemInstructions }] : []),
+            ...conversationHistory,
+            { role: 'user', content: userContent }
+          ]
+
+          const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${ENV.OPENROUTER_API_KEY}`,
+              'HTTP-Referer': window.location.origin,
+            },
+            body: JSON.stringify({
+              model: settings.model,
+              messages: allMessages,
+              temperature: settings.temperature,
+              top_p: settings.topP,
+              stream: mode === 'stream'
+            }),
+            signal: controller.signal
+          })
+
+          if (!response.ok) {
+            const error = await response.json().catch(() => ({}))
+            throw new Error(error.error?.message || `HTTP ${response.status}`)
+          }
+
+          if (mode === 'stream') {
+            const assistantMessageId = (Date.now() + 1).toString()
+            const assistantMessage: Message = {
+              id: assistantMessageId,
+              role: 'assistant',
+              content: '',
+              timestamp: new Date(),
+              isStreaming: true
+            }
+            setMessages(prev => [...prev, assistantMessage])
+
+            const reader = response.body?.getReader()
+            const decoder = new TextDecoder()
+            let fullText = ''
+
+            if (reader) {
+              while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+
+                const chunk = decoder.decode(value)
+                const lines = chunk.split('\n').filter(line => line.trim().startsWith('data:'))
+
+                for (const line of lines) {
+                  const data = line.replace(/^data: /, '').trim()
+                  if (data === '[DONE]') continue
+
+                  try {
+                    const parsed = JSON.parse(data)
+                    const content = parsed.choices[0]?.delta?.content || ''
+                    fullText += content
+                    setMessages(prev => prev.map(msg =>
+                      msg.id === assistantMessageId
+                        ? { ...msg, content: fullText }
+                        : msg
+                    ))
+                  } catch (e) {
+                    // Skip invalid JSON
+                  }
+                }
+              }
+            }
+
+            setMessages(prev => prev.map(msg =>
+              msg.id === assistantMessageId
+                ? { ...msg, isStreaming: false }
+                : msg
+            ))
+          } else {
+            const data = await response.json()
+            const assistantMessage: Message = {
+              id: (Date.now() + 1).toString(),
+              role: 'assistant',
+              content: data.choices[0]?.message?.content || '',
+              timestamp: new Date()
+            }
+            setMessages(prev => [...prev, assistantMessage])
+          }
+        } else {
+          // Use LangChain for OpenRouter and DeepSeek (text-only)
+          const llm = getAIProvider(settings)
+
+          const langchainMessages = [
+            ...(settings.systemInstructions ? [new SystemMessage(settings.systemInstructions)] : []),
+            ...conversationHistory.map(msg =>
+              msg.role === 'user' ? new HumanMessage(msg.content) : new SystemMessage(msg.content)
+            ),
+            new HumanMessage(userInput)
+          ]
 
         if (mode === 'stream') {
           const assistantMessageId = (Date.now() + 1).toString()
@@ -266,6 +437,7 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
             timestamp: new Date()
           }
           setMessages(prev => [...prev, assistantMessage])
+        }
         }
       }
     } catch (error: any) {
@@ -320,6 +492,7 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
   }
 
   const handleNewChat = () => {
+    // Clear all previous state
     setMessages([{
       id: '1',
       role: 'assistant',
@@ -327,6 +500,18 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
       timestamp: new Date()
     }])
     setCurrentConversationId(null)
+    setInput('')
+    setIsLoading(false)
+    setIsListening(false)
+    setUploadedImage(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+    // Cancel any ongoing requests
+    if (abortController) {
+      abortController.abort()
+      setAbortController(null)
+    }
     conversationStore.setActiveConversation(null)
   }
 
@@ -362,84 +547,53 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
       {/* Chat Messages Area */}
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full px-4">
-          <div className="max-w-4xl mx-auto py-6 space-y-6">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
-              >
-                {message.role === 'assistant' && (
-                  <Avatar className="h-8 w-8 mt-1">
-                    <AvatarFallback className="bg-primary text-primary-foreground">
+          <div className="max-w-4xl mx-auto py-6 space-y-4">
+            <AnimatePresence mode="popLayout">
+              {messages.map((message) => (
+                <ChatMessage
+                  key={message.id}
+                  message={message}
+                  modelName={modelInfo?.name}
+                />
+              ))}
+
+              {isLoading && !messages.some(m => m.isStreaming) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex gap-3"
+                >
+                  <Avatar className="h-8 w-8 flex-shrink-0">
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
                       <Bot className="h-4 w-4" />
                     </AvatarFallback>
                   </Avatar>
-                )}
-
-                <div className={`max-w-2xl ${message.role === 'user' ? 'order-1' : 'order-2'
-                  }`}>
-                  <Card className={`p-4 relative ${message.role === 'user'
-                    ? 'bg-primary text-primary-foreground ml-8'
-                    : 'bg-card'
-                    }`}>
-                    <div className="text-sm pr-8">
-                      <MarkdownMessage content={message.content} isUser={message.role === 'user'} />
+                  <Card className="p-4 bg-card border-border max-w-[60%]">
+                    <div className="flex items-center gap-2">
+                      <div className="flex space-x-1">
+                        <motion.div
+                          className="w-2 h-2 bg-primary rounded-full"
+                          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                        <motion.div
+                          className="w-2 h-2 bg-primary rounded-full"
+                          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                          transition={{ duration: 1, repeat: Infinity, delay: 0.2, ease: "easeInOut" }}
+                        />
+                        <motion.div
+                          className="w-2 h-2 bg-primary rounded-full"
+                          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                          transition={{ duration: 1, repeat: Infinity, delay: 0.4, ease: "easeInOut" }}
+                        />
+                      </div>
+                      <span className="text-sm text-muted-foreground">Thinking...</span>
                     </div>
-
-                    {message.role === 'assistant' && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute bottom-2 right-2 h-6 w-6 p-0 hover:bg-muted"
-                        onClick={() => {
-                          navigator.clipboard.writeText(message.content)
-                          // Show notification - you might want to add a toast notification here
-                          console.log('Message copied to clipboard!')
-                        }}
-                        title="Copy message"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                    )}
                   </Card>
-
-                  <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                    {message.role === 'assistant' && modelInfo?.name}
-                    <span>{message.timestamp.toLocaleTimeString()}</span>
-                    {message.isStreaming && <span className="text-blue-500">• Streaming</span>}
-                  </div>
-                </div>
-
-                {message.role === 'user' && (
-                  <Avatar className="h-8 w-8 mt-1">
-                    <AvatarFallback className="bg-muted">
-                      <User className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-              </div>
-            ))}
-
-            {isLoading && (
-              <div className="flex gap-4 justify-start">
-                <Avatar className="h-8 w-8 mt-1">
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    <Bot className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-                <Card className="p-4 bg-card max-w-2xl">
-                  <div className="flex items-center gap-2">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
-                    <span className="text-sm text-muted-foreground">Thinking...</span>
-                  </div>
-                </Card>
-              </div>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <div ref={messagesEndRef} />
           </div>
@@ -447,16 +601,63 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-border bg-card/50">
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="border-t border-border bg-card/50 backdrop-blur-sm"
+      >
         <div className="max-w-4xl mx-auto p-4">
+          {/* Image Preview */}
+          <AnimatePresence>
+            {uploadedImage && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                className="mb-3 relative inline-block"
+              >
+                <img
+                  src={uploadedImage}
+                  alt="Upload preview"
+                  className="max-w-xs rounded-lg border border-border shadow-md"
+                />
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-lg"
+                  onClick={removeImage}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+                {!supportsVision && (
+                  <Badge variant="destructive" className="absolute bottom-2 left-2">
+                    Model doesn't support images
+                  </Badge>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div className="relative">
-            <div className="flex items-end gap-3 bg-background rounded-2xl border border-border p-3">
+            <motion.div
+              whileFocus={{ scale: 1.01 }}
+              className="flex items-end gap-3 bg-background rounded-2xl border border-border p-3 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+                title={supportsVision ? "Upload image" : "Current model doesn't support images"}
               >
-                <Paperclip className="h-4 w-4" />
+                <ImageIcon className="h-4 w-4" />
               </Button>
 
               <div className="flex-1">
@@ -475,40 +676,61 @@ export function ChatInterface({ mode }: ChatInterfaceProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`h-8 w-8 ${isListening ? 'text-red-500' : 'text-muted-foreground hover:text-foreground'}`}
+                  className={`h-8 w-8 transition-colors ${isListening ? 'text-red-500 hover:text-red-600' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
                   onClick={toggleVoiceInput}
                 >
                   {isListening ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 </Button>
 
-                {isLoading ? (
-                  <Button
-                    onClick={handleStopGeneration}
-                    size="icon"
-                    variant="destructive"
-                    className="h-8 w-8"
-                  >
-                    <StopCircle className="h-4 w-4" />
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleSendMessage}
-                    disabled={!input.trim()}
-                    size="icon"
-                    className="h-8 w-8"
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                )}
+                <AnimatePresence mode="wait">
+                  {isLoading ? (
+                    <motion.div
+                      key="stop"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.8, opacity: 0 }}
+                    >
+                      <Button
+                        onClick={handleStopGeneration}
+                        size="icon"
+                        variant="destructive"
+                        className="h-8 w-8"
+                      >
+                        <StopCircle className="h-4 w-4" />
+                      </Button>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="send"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.8, opacity: 0 }}
+                    >
+                      <Button
+                        onClick={handleSendMessage}
+                        disabled={!input.trim()}
+                        size="icon"
+                        className="h-8 w-8"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
+            </motion.div>
           </div>
 
-          <p className="text-xs text-muted-foreground text-center mt-2">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-xs text-muted-foreground text-center mt-2"
+          >
             AI may display inaccurate info. Current model: {modelInfo?.name || 'Unknown'}
-          </p>
+          </motion.p>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }
