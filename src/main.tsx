@@ -38,7 +38,7 @@ if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
-      <ThemeProvider defaultTheme="dark" storageKey="haslab-ui-theme">
+      <ThemeProvider defaultTheme="light" storageKey="haslab-ui-theme">
         <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
           <RouterProvider router={router} />
         </TanStackQueryProvider.Provider>

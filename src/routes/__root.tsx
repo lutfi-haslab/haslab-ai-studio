@@ -3,6 +3,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import { MainLayout } from '../components/layout/MainLayout'
+import { Toaster } from '../components/ui/toast'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
@@ -18,6 +19,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: () => (
     <>
       <MainLayout />
+      <Toaster position="top-right" />
       <TanStackDevtools
         config={{
           position: 'bottom-right',

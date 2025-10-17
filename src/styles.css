@@ -3,6 +3,13 @@
 
 @import 'tw-animate-css';
 
+@theme inline {
+  --font-sans: "Inter", "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --radius-sm: 0.55rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 0.9rem;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 body {
@@ -18,26 +25,65 @@ code {
 }
 
 :root {
-  /* Light theme (default) */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.871 0.006 286.286);
+  /* Light theme (default) - Haslab UI Colors */
+  --color-background: hsl(215 33% 98%);
+  --color-foreground: hsl(224 71% 4%);
+  --color-muted: hsl(216 24% 94%);
+  --color-muted-foreground: hsl(222 15% 46%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(224 71% 4%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(224 71% 4%);
+  --color-border: hsl(214 32% 91%);
+  --color-input: hsl(214 32% 91%);
+  --color-ring: hsl(226 64% 52%);
+
+  --background: hsl(215 33% 98%);
+  --foreground: hsl(224 71% 4%);
+  --muted: hsl(216 24% 94%);
+  --muted-foreground: hsl(222 15% 46%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(224 71% 4%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(224 71% 4%);
+  --border: hsl(214 32% 91%);
+  --input: hsl(214 32% 91%);
+  --ring: hsl(226 64% 52%);
+
+  --color-primary: hsl(235 85% 62%);
+  --color-primary-foreground: hsl(210 40% 98%);
+  --color-secondary: hsl(188 72% 65%);
+  --color-secondary-foreground: hsl(197 78% 9%);
+  --color-accent: hsl(264 84% 72%);
+  --color-accent-foreground: hsl(258 100% 98%);
+  --color-destructive: hsl(348 86% 61%);
+  --color-destructive-foreground: hsl(350 100% 98%);
+  --color-success: hsl(152 70% 46%);
+  --color-success-foreground: hsl(150 86% 96%);
+  --color-info: hsl(221 83% 62%);
+  --color-info-foreground: hsl(220 100% 97%);
+  --color-warning: hsl(38 92% 55%);
+  --color-warning-foreground: hsl(25 90% 13%);
+
+  --primary: hsl(235 85% 62%);
+  --primary-foreground: hsl(210 40% 98%);
+  --secondary: hsl(188 72% 65%);
+  --secondary-foreground: hsl(197 78% 9%);
+  --accent: hsl(264 84% 72%);
+  --accent-foreground: hsl(258 100% 98%);
+  --destructive: hsl(348 86% 61%);
+  --destructive-foreground: hsl(350 100% 98%);
+  --success: hsl(152 70% 46%);
+  --success-foreground: hsl(150 86% 96%);
+  --info: hsl(221 83% 62%);
+  --info-foreground: hsl(220 100% 97%);
+  --warning: hsl(38 92% 55%);
+  --warning-foreground: hsl(25 90% 13%);
+
+  --shadow-glow-sm: 0 8px 24px rgba(31, 41, 55, 0.12);
+  --shadow-glow-md: 0 20px 45px rgba(31, 41, 55, 0.18);
+  --shadow-glow-lg: 0 32px 60px rgba(31, 41, 55, 0.24);
+
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -78,45 +124,78 @@ code {
 }
 
 .dark {
-  /* Google AI Studio Dark Theme - exact match */
-  --background: #1a1a1a;        /* Main dark background */
-  --foreground: #e8eaed;        /* Primary white text */
-  --card: #2d2e30;              /* Card/panel backgrounds */
-  --card-foreground: #e8eaed;   /* Card text */
-  --popover: #2d2e30;           /* Popover background */
-  --popover-foreground: #e8eaed; /* Popover text */
-  --primary: #4285f4;           /* Google Blue primary */
-  --primary-foreground: #ffffff; /* White text on primary */
-  --secondary: #3c4043;         /* Secondary surfaces */
-  --secondary-foreground: #e8eaed; /* Secondary text */
-  --muted: #3c4043;             /* Muted backgrounds */
-  --muted-foreground: #9aa0a6;  /* Muted text - Google's secondary text color */
-  --accent: #3c4043;            /* Accent backgrounds */
-  --accent-foreground: #e8eaed; /* Accent text */
-  --destructive: #f28b82;       /* Google's red */
-  --destructive-foreground: #ffffff; /* Error text */
-  --border: #5f6368;            /* Borders - Google's border color */
-  --input: #3c4043;             /* Input backgrounds */
-  --ring: #4285f4;              /* Focus rings */
-  --chart-1: #4285f4;           /* Google Blue */
-  --chart-2: #34a853;           /* Google Green */
-  --chart-3: #fbbc04;           /* Google Yellow */
-  --chart-4: #ea4335;           /* Google Red */
-  --chart-5: #9c27b0;           /* Purple */
-  --sidebar: #202124;           /* Sidebar dark background */
-  --sidebar-foreground: #e8eaed; /* Sidebar text */
-  --sidebar-primary: #4285f4;   /* Sidebar primary */
-  --sidebar-primary-foreground: #ffffff; /* Sidebar primary text */
-  --sidebar-accent: #3c4043;    /* Sidebar accent */
-  --sidebar-accent-foreground: #e8eaed; /* Sidebar accent text */
-  --sidebar-border: #5f6368;    /* Sidebar borders */
-  --sidebar-ring: #4285f4;      /* Sidebar focus ring */
-  
-  /* Status colors - Google style */
-  --success: #34a853;           /* Google Green */
-  --warning: #fbbc04;           /* Google Yellow */
-  --error: #ea4335;             /* Google Red */
-  --info: #4285f4;              /* Google Blue */
+  /* Haslab UI Dark Theme */
+  --color-background: hsl(222 48% 6%);
+  --color-foreground: hsl(210 40% 96%);
+  --color-muted: hsl(223 47% 14%);
+  --color-muted-foreground: hsl(215 20% 65%);
+  --color-card: hsl(223 47% 8%);
+  --color-card-foreground: hsl(210 40% 96%);
+  --color-popover: hsl(223 47% 10%);
+  --color-popover-foreground: hsl(210 40% 96%);
+  --color-border: hsl(223 47% 18%);
+  --color-input: hsl(223 47% 18%);
+  --color-ring: hsl(236 100% 73%);
+
+  --color-primary: hsl(236 93% 68%);
+  --color-primary-foreground: hsl(226 100% 12%);
+  --color-secondary: hsl(190 96% 54%);
+  --color-secondary-foreground: hsl(208 100% 12%);
+  --color-accent: hsl(268 86% 75%);
+  --color-accent-foreground: hsl(260 100% 16%);
+  --color-destructive: hsl(355 94% 44%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-success: hsl(156 72% 42%);
+  --color-success-foreground: hsl(152 84% 96%);
+  --color-info: hsl(218 100% 64%);
+  --color-info-foreground: hsl(212 100% 12%);
+  --color-warning: hsl(45 94% 54%);
+  --color-warning-foreground: hsl(23 96% 14%);
+
+  --background: hsl(222 48% 6%);
+  --foreground: hsl(210 40% 96%);
+  --muted: hsl(223 47% 14%);
+  --muted-foreground: hsl(215 20% 65%);
+  --card: hsl(223 47% 8%);
+  --card-foreground: hsl(210 40% 96%);
+  --popover: hsl(223 47% 10%);
+  --popover-foreground: hsl(210 40% 96%);
+  --border: hsl(223 47% 18%);
+  --input: hsl(223 47% 18%);
+  --ring: hsl(236 100% 73%);
+
+  --primary: hsl(236 93% 68%);
+  --primary-foreground: hsl(226 100% 12%);
+  --secondary: hsl(190 96% 54%);
+  --secondary-foreground: hsl(208 100% 12%);
+  --accent: hsl(268 86% 75%);
+  --accent-foreground: hsl(260 100% 16%);
+  --destructive: hsl(355 94% 44%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --success: hsl(156 72% 42%);
+  --success-foreground: hsl(152 84% 96%);
+  --info: hsl(218 100% 64%);
+  --info-foreground: hsl(212 100% 12%);
+  --warning: hsl(45 94% 54%);
+  --warning-foreground: hsl(23 96% 14%);
+
+  --shadow-glow-sm: 0 8px 24px rgba(15, 23, 42, 0.38);
+  --shadow-glow-md: 0 20px 45px rgba(15, 23, 42, 0.45);
+  --shadow-glow-lg: 0 32px 60px rgba(15, 23, 42, 0.55);
+
+  --chart-1: #4285f4;
+  --chart-2: #34a853;
+  --chart-3: #fbbc04;
+  --chart-4: #ea4335;
+  --chart-5: #9c27b0;
+  --sidebar: #202124;
+  --sidebar-foreground: #e8eaed;
+  --sidebar-primary: #4285f4;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #3c4043;
+  --sidebar-accent-foreground: #e8eaed;
+  --sidebar-border: #5f6368;
+  --sidebar-ring: #4285f4;
 }
 
 @theme inline {
@@ -159,12 +238,25 @@ code {
 }
 
 @layer base {
-  * {
+  *,
+  *::before,
+  *::after {
     @apply border-border outline-ring/50;
+    border-color: color-mix(in srgb, var(--color-border) 70%, transparent);
   }
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-primary);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(120% 120% at 97% 0%, color-mix(in srgb, var(--color-primary) 12%, transparent) 0%, transparent 48%),
+      radial-gradient(120% 120% at 0% 100%, color-mix(in srgb, var(--color-accent) 14%, transparent) 0%, transparent 52%),
+      linear-gradient(180deg, var(--color-background) 0%, color-mix(in srgb, var(--color-background) 92%, black 8%) 100%);
+  }
+  
+  ::selection {
+    background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+    color: var(--color-primary-foreground);
   }
   
   /* Typography scale - Google AI Studio style */
@@ -256,5 +348,25 @@ code {
   .gradient-border > * {
     background: var(--background);
     border-radius: calc(var(--radius-lg) - 1px);
+  }
+  
+  /* Glass panel effect */
+  .glass-panel {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-card) 90%, transparent) 0%, color-mix(in srgb, var(--color-card) 80%, transparent) 100%);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-border) 45%, transparent), var(--shadow-glow-md);
+    backdrop-filter: blur(16px);
+  }
+  
+  /* Shadow glow utilities */
+  .shadow-glow-sm {
+    box-shadow: var(--shadow-glow-sm);
+  }
+  
+  .shadow-glow-md {
+    box-shadow: var(--shadow-glow-md);
+  }
+  
+  .shadow-glow-lg {
+    box-shadow: var(--shadow-glow-lg);
   }
 }
