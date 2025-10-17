@@ -10,6 +10,7 @@ import { routeTree } from './routeTree.gen'
 
 import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
+import { TooltipProvider } from './components/ui/tooltip.tsx'
 
 // Create a new router instance
 
@@ -40,7 +41,9 @@ if (rootElement && !rootElement.innerHTML) {
     <StrictMode>
       <ThemeProvider defaultTheme="light" storageKey="haslab-ui-theme">
         <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
-          <RouterProvider router={router} />
+          <TooltipProvider>
+            <RouterProvider router={router} />
+          </TooltipProvider>
         </TanStackQueryProvider.Provider>
       </ThemeProvider>
     </StrictMode>,

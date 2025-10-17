@@ -13,6 +13,7 @@ import { Route as UsageRouteImport } from './routes/usage'
 import { Route as StreamRouteImport } from './routes/stream'
 import { Route as ProjectRouteImport } from './routes/project'
 import { Route as MediaRouteImport } from './routes/media'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as BuildRouteImport } from './routes/build'
 import { Route as IndexRouteImport } from './routes/index'
@@ -37,6 +38,11 @@ const ProjectRoute = ProjectRouteImport.update({
 const MediaRoute = MediaRouteImport.update({
   id: '/media',
   path: '/media',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChatRoute = ChatRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/build': typeof BuildRoute
   '/chat': typeof ChatRoute
+  '/login': typeof LoginRoute
   '/media': typeof MediaRoute
   '/project': typeof ProjectRoute
   '/stream': typeof StreamRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/build': typeof BuildRoute
   '/chat': typeof ChatRoute
+  '/login': typeof LoginRoute
   '/media': typeof MediaRoute
   '/project': typeof ProjectRoute
   '/stream': typeof StreamRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/build': typeof BuildRoute
   '/chat': typeof ChatRoute
+  '/login': typeof LoginRoute
   '/media': typeof MediaRoute
   '/project': typeof ProjectRoute
   '/stream': typeof StreamRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/build'
     | '/chat'
+    | '/login'
     | '/media'
     | '/project'
     | '/stream'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/build'
     | '/chat'
+    | '/login'
     | '/media'
     | '/project'
     | '/stream'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/build'
     | '/chat'
+    | '/login'
     | '/media'
     | '/project'
     | '/stream'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BuildRoute: typeof BuildRoute
   ChatRoute: typeof ChatRoute
+  LoginRoute: typeof LoginRoute
   MediaRoute: typeof MediaRoute
   ProjectRoute: typeof ProjectRoute
   StreamRoute: typeof StreamRoute
@@ -175,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: '/media'
       fullPath: '/media'
       preLoaderRoute: typeof MediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chat': {
@@ -219,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BuildRoute: BuildRoute,
   ChatRoute: ChatRoute,
+  LoginRoute: LoginRoute,
   MediaRoute: MediaRoute,
   ProjectRoute: ProjectRoute,
   StreamRoute: StreamRoute,
