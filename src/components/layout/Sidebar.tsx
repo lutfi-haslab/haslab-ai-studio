@@ -13,14 +13,12 @@ import {
   MessageSquare,
   Plus,
   Menu,
-  Settings,
   History,
   Home,
   Play,
   Image as ImageIcon,
   Code,
   BarChart3,
-  Key,
   Activity,
   User,
   ChevronDown,
@@ -96,10 +94,11 @@ export function Sidebar() {
     { icon: Activity, label: 'Usage', href: '/usage' }
   ]
 
-  const footerItems = [
-    { icon: Key, label: 'Get API key', href: '/api-keys' },
-    { icon: Activity, label: 'View status', href: '/status' },
-    { icon: Settings, label: 'Settings', href: '/settings' },
+  // Temporarily hidden as per requirements
+  const footerItems: Array<{ icon: any; label: string; href: string }> = [
+    // { icon: Key, label: 'Get API key', href: '/api-keys' },
+    // { icon: Activity, label: 'View status', href: '/status' },
+    // { icon: Settings, label: 'Settings', href: '/settings' },
   ]
 
   const SidebarContent = () => (

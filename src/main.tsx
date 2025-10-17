@@ -11,6 +11,10 @@ import { routeTree } from './routeTree.gen'
 import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
 import { TooltipProvider } from './components/ui/tooltip.tsx'
+import { initializeRepositories } from './lib/repository'
+
+// Initialize data persistence layer
+initializeRepositories().catch(console.error)
 
 // Create a new router instance
 
